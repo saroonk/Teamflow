@@ -1,13 +1,14 @@
+
 from django.contrib import admin
-
-
+from django.contrib.auth.admin import UserAdmin
 from unfold.admin import ModelAdmin
+
 from .models import User
-# Register your models here.
 
 
 @admin.register(User)
-class CustomUserAdmin(ModelAdmin):
+class CustomUserAdmin(UserAdmin, ModelAdmin):
+
     list_display = (
         "username",
         "email",
@@ -87,3 +88,4 @@ class CustomUserAdmin(ModelAdmin):
             },
         ),
     )
+
