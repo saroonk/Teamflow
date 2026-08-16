@@ -33,15 +33,14 @@ class MeView(RetrieveAPIView):
 
 
 
-class PermissionTestView(APIView):
-    permission_classes = [IsTeamMember]
+# class PermissionTestView(APIView):
+#     permission_classes = [IsTeamMember]
 
-    def get(self, request):
-        return Response({
-            "message": "You are a System Admin!",
-            "user": request.user.username,
-            # "role": request.user.role,
-        })
+#     def get(self, request):
+#         return Response({
+#             "message": "You are a System Admin!",
+#             "user": request.user.username,
+#         })
 
 
 
