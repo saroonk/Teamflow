@@ -15,7 +15,7 @@ from rest_framework.permissions import *
 from rest_framework.response import Response
 from rest_framework import status
 
-from .permissions import IsProjectCreatorAdmin
+from .permissions import IsProjectCreatorAdmin,IsTeamMemberViewer
 
 class ProjectsView(ListCreateAPIView):
     serializer_class = ProjectSerializer
@@ -72,4 +72,34 @@ class ProjectsDetailView(RetrieveUpdateDestroyAPIView):
             status=status.HTTP_200_OK
         )
 
+
+
+
+
+
+class ProjectMembersView(ListAPIView):
+    serializer_class = ProjectMemberSerializer
+    queryset = User.objects.all()
+    permission_classes = [IsTeamMemberViewer]
+
+    def get_queryset(self):
+        project_id = self.kwargs['pk']
+        project = Project.objects.get(pk = project_id)
+        user =self.request.user
+
+        if user.is_superuser or user.role == "organization_admin":
+            return project.team_members.all()
+        
+        if user.role == "project_manager":
+            if project.project_manager == user  :
+                return project.team_members.all()
+        
+        return User.objects.none()
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['project'] = get_object_or_404(
+            Project,
+            pk=self.kwargs['pk']
+        )
+        return context
 

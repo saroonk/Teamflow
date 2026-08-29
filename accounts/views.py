@@ -33,15 +33,6 @@ class MeView(RetrieveAPIView):
 
 
 
-# class PermissionTestView(APIView):
-#     permission_classes = [IsTeamMember]
-
-#     def get(self, request):
-#         return Response({
-#             "message": "You are a System Admin!",
-#             "user": request.user.username,
-#         })
-
 
 
 
@@ -49,6 +40,8 @@ class MeView(RetrieveAPIView):
 class Users(ListCreateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    permission_classes = [IsSystemOrOrganizationAdmin]
+
 
     def get_queryset(self):
         user = self.request.user
@@ -59,11 +52,12 @@ class Users(ListCreateAPIView):
         return User.objects.filter(
             role__in=["project_manager", "team_member"]
         )
-    permission_classes = [IsSystemOrOrganizationAdmin]
 
 
 class UsersManage(RetrieveUpdateDestroyAPIView):
     serializer_class = UserManageSerializer
+    permission_classes = [IsSystemOrOrganizationAdmin]
+
     def get_queryset(self):
         user = self.request.user
 
@@ -73,4 +67,3 @@ class UsersManage(RetrieveUpdateDestroyAPIView):
         return User.objects.filter(
             role__in=["project_manager", "team_member"]
         )
-    permission_classes = [IsSystemOrOrganizationAdmin]

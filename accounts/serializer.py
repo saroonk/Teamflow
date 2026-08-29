@@ -3,11 +3,18 @@ from rest_framework.serializers import ModelSerializer
 
 from rest_framework import serializers
 from .models import User
+from organizations.models import Organizations
 
 
 
 class UserSerializer(ModelSerializer):
     password = serializers.CharField(write_only=True)
+    Organization_name = serializers.CharField(source="organization.name" , read_only=True)
+
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organizations.objects.all(),
+        write_only=True
+    )
     class Meta:
         model = User
         fields = [ "id",
@@ -17,6 +24,7 @@ class UserSerializer(ModelSerializer):
             "first_name",
             "last_name",
             "role",
+            "Organization_name",
             "organization",]
     
     def validate(self,validated_data):

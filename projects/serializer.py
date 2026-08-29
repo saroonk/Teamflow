@@ -79,6 +79,7 @@ class ProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = [
+            "id",
             "title",
             "description",
             "organization",
@@ -90,3 +91,20 @@ class ProjectSerializer(ModelSerializer):
             "priority",
             "status",
         ]
+
+
+
+
+
+
+class ProjectMemberSerializer(ModelSerializer):
+    project_name = serializers.SerializerMethodField()
+    organization= serializers.CharField(source="organization.name", read_only=True)
+
+    def get_project_name(self, obj):
+        project = self.context['project']
+        return project.title    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'role', 'project_name','organization', 'email']
+        read_only_fields = ['id', 'username', 'role','project_name','organization', 'email']
