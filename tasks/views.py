@@ -66,7 +66,4 @@ class TasksDetailView(RetrieveUpdateDestroyAPIView):
 
 
 
-
-# ("organization_admin", "Organization Admin"),
-#         ("project_manager", "Project Manager"),
-#         ("team_member", "Team Member"),       
+      

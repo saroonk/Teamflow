@@ -23,12 +23,14 @@ class TaskSerializer(ModelSerializer):
 
     assigned_to = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
-        write_only=True
+        write_only=True,
+        required=False,
+        allow_null=True
     )
 
 
-    def get_assigned_members(self,obj):
-        return obj.assigned_to.username
+    def get_assigned_members(self, obj):
+        return obj.assigned_to.username if obj.assigned_to else None
     class Meta:
         model = Task
         fields = ['id','title','description','assigned_members','project_name','project','assigned_to','created_by','completion_report','worked_hours','priority','status','due_date','created_at','updated_at']
