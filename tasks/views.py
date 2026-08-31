@@ -9,9 +9,10 @@ from .models import Task
 from rest_framework.permissions import AllowAny
 
 from rest_framework.response import Response
-
+from rest_framework.exceptions import PermissionDenied
 
 from django.core.cache import cache
+
 
 
 
@@ -38,9 +39,15 @@ class TasksView(ListCreateAPIView):
             return Task.objects.filter(project__in = user.managed_projects.all())
         elif user.role == "team_member":
             return Task.objects.filter(assigned_to = user)
-        return Task.objects.none()
+
+        raise PermissionDenied(
+            "You do not have permission to access this project's members."
+        )
+
 
     def list(self, request, *args, **kwargs):
+        queryset =self.get_queryset()
+
         cache_key = f"teamflow:user:{request.user.id}:tasks:list"
 
         cached_data = cache.get(cache_key)
@@ -48,9 +55,8 @@ class TasksView(ListCreateAPIView):
         if cached_data is not None:
             return Response (cached_data)
 
-        queryset =self.get_queryset()
 
-        serializer =  self.serializer_class(queryset, many=True)
+        serializer =  self.get_serializer(queryset, many=True)
 
         serializer_data = serializer.data
 
@@ -86,7 +92,11 @@ class TasksDetailView(RetrieveUpdateDestroyAPIView):
             return Task.objects.filter(project__in = user.managed_projects.all())
         elif user.role == "team_member":
             return Task.objects.filter(assigned_to = user)
-        return Task.objects.none()
+
+        raise PermissionDenied(
+            "You do not have permission to access this project's members."
+        )
+
     
     def update(self, request, *args, **kwargs):
         if request.user.role == "team_member":
@@ -121,7 +131,7 @@ class TasksDetailView(RetrieveUpdateDestroyAPIView):
         if cached_data is not None:
             return Response (cached_data)
 
-        serializer = self.serializer_class(instance)
+        serializer = self.get_serializer(instance)
 
         serializer_data = serializer.data
 

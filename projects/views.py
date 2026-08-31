@@ -24,14 +24,16 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework.exceptions import PermissionDenied
 
+from .cache import invalidate_project_members_cache
+
 def invalidate_project_list_cache():
     cache.delete_pattern("teamflow:user:*:projects:list")
 
 def invalidate_project_detail_cache(project_id):
     cache.delete(f"teamflow:project:{project_id}")
 
-def invalidate_project_members_cache(project_id):
-    cache.delete(f"teamflow:project:{project_id}:members:list")
+# def invalidate_project_members_cache(project_id):
+#     cache.delete(f"teamflow:project:{project_id}:members:list")
 
 
 class ProjectsView(ListCreateAPIView):
@@ -76,12 +78,19 @@ class ProjectsView(ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
+
+        if user.is_superuser or user.role == "organization_admin":
+            return Project.objects.all()
+
         if user.role == "project_manager":
             return user.managed_projects.all()
-        elif user.role == "team_member":
+
+        if user.role == "team_member":
             return user.projects.all()
-        else:
-            return Project.objects.all()
+
+        raise PermissionDenied(
+            "You do not have permission to access projects."
+        )
 
 
 
@@ -99,6 +108,9 @@ class ProjectsDetailView(RetrieveUpdateDestroyAPIView):
             return user.managed_projects.all()
         elif user.role == "team_member":
             return user.projects.all()
+        raise PermissionDenied(
+                "You do not have permission to access this project."
+            )
 
 
     def retrieve(self, request, *args, **kwargs):

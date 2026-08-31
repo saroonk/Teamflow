@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from .permissions import IsCommentModificationAllowed
 
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.core.cache import cache
 
@@ -36,7 +37,9 @@ class CommentView(ListCreateAPIView):
             return Comment.objects.filter(task__project__in = user.managed_projects.all())
         elif user.role == "team_member":
             return Comment.objects.filter(Q(task__assigned_to = user)|Q(created_by = user))
-        return Comment.objects.none()
+        raise PermissionDenied(
+                "You do not have permission to access this project's members."
+            )
 
 
    
@@ -72,7 +75,9 @@ class CommentDetailView(RetrieveUpdateDestroyAPIView):
             return Comment.objects.filter(task__project__in = user.managed_projects.all())
         elif user.role == "team_member":
             return Comment.objects.filter(Q(task__assigned_to = user)|Q(created_by = user))
-        return Comment.objects.none()
+        raise PermissionDenied(
+                "You do not have permission to access this project's members."
+            )
 
 
     def perform_update(self, serializer):
@@ -115,11 +120,15 @@ class TaskCommentsList(ListAPIView):
 
         elif user.role == "team_member":
             return Comment.objects.filter(task_id=task_id).filter(Q(task__assigned_to=user) |Q(created_by=user))
-        return Comment.objects.none()
+        raise PermissionDenied(
+                "You do not have permission to access this project's members."
+            )
 
 
 
     def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
         task_id = self.kwargs["pk"]
 
         cache_key = (
@@ -132,7 +141,6 @@ class TaskCommentsList(ListAPIView):
         if cached_data is not None:
             return Response(cached_data)
 
-        queryset = self.get_queryset()
 
         serializer = self.get_serializer(
             queryset,
