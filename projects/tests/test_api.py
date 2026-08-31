@@ -21,14 +21,6 @@ class ProjectCreateAndAccessTest(APITestCase):
         )
 
 
-
-
-
-
-
-
-
-
         self.system_admin = User.objects.create_user(
             username="testsystemadminuser",
             email="testsystemadmin@example.com",

@@ -151,6 +151,7 @@ REST_FRAMEWORK = {
         "anon": "10/minute",
         "user": "80/minute",
         "comments": "30/minute",
+        
         "task_read": "60/minute",
         "task_write": "30/minute",
         "task_detail":"30/minute",
