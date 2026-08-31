@@ -26,6 +26,8 @@ from rest_framework.exceptions import PermissionDenied
 
 from .cache import invalidate_project_members_cache
 
+from rest_framework.throttling import ScopedRateThrottle
+
 def invalidate_project_list_cache():
     cache.delete_pattern("teamflow:user:*:projects:list")
 
@@ -40,6 +42,15 @@ class ProjectsView(ListCreateAPIView):
     serializer_class = ProjectSerializer
     queryset =  Project.objects.all() 
     permission_classes = [IsProjectCreatorAdmin]
+    throttle_classes = [ScopedRateThrottle]
+
+    def get_throttles(self):
+        if self.request.method == "GET":
+            self.throttle_scope = "projects_read"
+        elif self.request.method == "POST":
+            self.throttle_scope = "projects_write"
+        return [ScopedRateThrottle()]
+
 
 
     def list(self, request, *args, **kwargs):
@@ -99,6 +110,8 @@ class ProjectsDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
     queryset =  Project.objects.all() 
     permission_classes = [IsProjectCreatorAdmin]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "projects_detail"
 
     def get_queryset(self):
         user = self.request.user

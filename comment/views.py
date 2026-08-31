@@ -16,6 +16,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.core.cache import cache
 
+from rest_framework.throttling import ScopedRateThrottle
 
 def invalidate_task_comments_cache(task_id):
     cache.delete_pattern(
@@ -26,6 +27,14 @@ class CommentView(ListCreateAPIView):
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+
+    def get_throttles(self):
+        if self.request.method == "GET":
+            self.throttle_scope = "comments_read"
+        elif self.request.method == "POST":
+            self.throttle_scope = "comments_write"
+        return [ScopedRateThrottle()]
 
     def get_queryset(self):
         user = self.request.user
@@ -65,6 +74,9 @@ class CommentDetailView(RetrieveUpdateDestroyAPIView):
         IsCommentModificationAllowed,
     ]
 
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "comments_detail"
+
     def get_queryset(self):
         user = self.request.user
 
@@ -102,6 +114,9 @@ class TaskCommentsList(ListAPIView):
     serializer_class = TaskCommentsListSerializer
 
     permission_classes = [IsAuthenticated]
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "task_comments_list"
 
 
 

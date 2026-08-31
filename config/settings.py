@@ -142,7 +142,31 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/minute",
+        "user": "80/minute",
+        "comments": "30/minute",
+        "task_read": "60/minute",
+        "task_write": "30/minute",
+        "task_detail":"30/minute",
+
+        "projects_read": "60/minute",
+        "projects_write":"30/minute",
+        "projects_detail":"30/minute",
+
+        "comments_read":"60/minute",
+        "comments_write" :"30/minute",
+        "comments_detail":"30/minute",
+        "task_comments_list":"60/minute"
+    },
+
 }
+
 
 
 

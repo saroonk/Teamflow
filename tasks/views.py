@@ -13,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from django.core.cache import cache
 
+from rest_framework.throttling import ScopedRateThrottle
 
 
 
@@ -27,6 +28,14 @@ class TasksView(ListCreateAPIView):
     serializer_class = TaskSerializer
     queryset = Task.objects.all()
     permission_classes = [IsTaskAccess]
+    throttle_classes = [ScopedRateThrottle]
+
+    def get_throttles(self):
+        if self.request.method == "GET":
+            self.throttle_scope = "task_read"
+        elif self.request.method == "POST":
+            self.throttle_scope = "task_write"
+        return [ScopedRateThrottle()]
 
 
     def get_queryset(self):
@@ -81,6 +90,8 @@ class TasksDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
     queryset = Task.objects.all()
     permission_classes = [IsTaskAccess]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "task_detail"
 
     def get_queryset(self):
         user = self.request.user
