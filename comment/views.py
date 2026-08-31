@@ -13,7 +13,13 @@ from rest_framework.views import APIView
 from .permissions import IsCommentModificationAllowed
 
 from django.db.models import Q
+from django.core.cache import cache
 
+
+def invalidate_task_comments_cache(task_id):
+    cache.delete_pattern(
+        f"teamflow:user:*:task:{task_id}:comments:list"
+    )
 
 class CommentView(ListCreateAPIView):
     serializer_class = CommentSerializer
@@ -33,9 +39,16 @@ class CommentView(ListCreateAPIView):
         return Comment.objects.none()
 
 
-    def perform_create(self,serializer):
+   
+    
+    def perform_create(self, serializer):
         user = self.request.user
-        return serializer.save(created_by = user)
+
+        comment = serializer.save(created_by=user)
+
+        invalidate_task_comments_cache(
+            comment.task_id
+        )
 
 
 
@@ -60,6 +73,21 @@ class CommentDetailView(RetrieveUpdateDestroyAPIView):
         elif user.role == "team_member":
             return Comment.objects.filter(Q(task__assigned_to = user)|Q(created_by = user))
         return Comment.objects.none()
+
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+
+        invalidate_task_comments_cache(
+            instance.task_id
+        )
+
+    def perform_destroy(self, instance):
+        task_id = instance.task_id
+
+        instance.delete()
+
+        invalidate_task_comments_cache(task_id)
 
 
 
@@ -88,3 +116,35 @@ class TaskCommentsList(ListAPIView):
         elif user.role == "team_member":
             return Comment.objects.filter(task_id=task_id).filter(Q(task__assigned_to=user) |Q(created_by=user))
         return Comment.objects.none()
+
+
+
+    def list(self, request, *args, **kwargs):
+        task_id = self.kwargs["pk"]
+
+        cache_key = (
+            f"teamflow:user:{request.user.id}:"
+            f"task:{task_id}:comments:list"
+        )
+
+        cached_data = cache.get(cache_key)
+
+        if cached_data is not None:
+            return Response(cached_data)
+
+        queryset = self.get_queryset()
+
+        serializer = self.get_serializer(
+            queryset,
+            many=True
+        )
+
+        serialized_data = serializer.data
+
+        cache.set(
+            cache_key,
+            serialized_data,
+            timeout=300
+        )
+
+        return Response(serialized_data)
