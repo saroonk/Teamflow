@@ -32,10 +32,19 @@ class ProjectSerializer(ModelSerializer):
 
     team_members_name = serializers.SerializerMethodField()
 
+
+
     def validate(self, attrs):
         request_user = self.context["request"].user
+        request = self.context["request"]
 
-        if request_user.role != "project_manager":
+        if request_user.role == "project_manager":
+            if "project_manager" in attrs or "organization" in attrs:
+                raise serializers.ValidationError(
+                    "You can't set or update organization or project manager."
+                )
+
+        if request.method == "POST" and request_user.role != "project_manager":
             if "organization" not in attrs:
                 raise serializers.ValidationError({
                     "organization": "This field is required."
@@ -45,11 +54,6 @@ class ProjectSerializer(ModelSerializer):
                 raise serializers.ValidationError({
                     "project_manager": "This field is required."
                 })
-
-        if request_user.role == "project_manager":
-            if "project_manager" in attrs or "organization" in attrs:
-                raise serializers.ValidationError("You cant update those values")
-
 
         return attrs
 
