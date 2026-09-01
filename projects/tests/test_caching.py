@@ -59,7 +59,10 @@ class ProjectCachingTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        cache_key = f"teamflow:user:{self.system_admin.id}:projects:list"
+        cache_key = (
+            f"teamflow:user:{self.system_admin.id}:projects:list:"
+            f"page:1:size:10"
+        )
 
         cached_data = cache.get(cache_key)
 
@@ -136,7 +139,11 @@ class ProjectCachingTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        cache_key = f"teamflow:user:{self.system_admin.id}:projects:list"
+        cache_key = (
+            f"teamflow:user:{self.system_admin.id}:projects:list:"
+            f"page:1:size:10"
+        )
+
 
         cached_data = cache.get(cache_key)
 
@@ -149,7 +156,10 @@ class ProjectCachingTests(APITestCase):
         response = self.client.get("/api/v1/projects/")
         self.assertEqual(response.status_code, 200)
 
-        cache_key = f"teamflow:user:{self.system_admin.id}:projects:list"
+        cache_key = (
+            f"teamflow:user:{self.system_admin.id}:projects:list:"
+            f"page:1:size:10"
+        )
 
         self.assertIsNotNone(cache.get(cache_key))
 

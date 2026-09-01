@@ -140,7 +140,7 @@ class TaskCreateAndAccessTest(APITestCase):
             status.HTTP_200_OK
         )
 
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
 
     def test_organization_admin_can_view_all_tasks(self):
@@ -154,7 +154,7 @@ class TaskCreateAndAccessTest(APITestCase):
             status.HTTP_200_OK
         )
 
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
 
 
@@ -169,7 +169,7 @@ class TaskCreateAndAccessTest(APITestCase):
             status.HTTP_200_OK
         )
 
-        task_ids = [task["id"] for task in response.data]
+        task_ids = [task["id"] for task in response.data["results"]]
 
         self.assertIn(self.task.id, task_ids)
         self.assertNotIn(self.another_task.id, task_ids) 
@@ -186,7 +186,7 @@ class TaskCreateAndAccessTest(APITestCase):
             status.HTTP_200_OK
         )
 
-        task_ids = [task["id"] for task in response.data]
+        task_ids = [task["id"] for task in response.data["results"]]
 
         self.assertIn(self.task.id, task_ids)
         self.assertNotIn(self.another_task.id, task_ids)

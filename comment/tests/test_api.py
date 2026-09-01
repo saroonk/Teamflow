@@ -182,7 +182,7 @@ class CommentAPITest(APITestCase):
         )
 
         self.assertEqual(
-            len(response.data),
+            len(response.data["results"]),
             0
         )
 
@@ -200,7 +200,7 @@ class CommentAPITest(APITestCase):
         )
 
         self.assertEqual(
-            len(response.data),
+            len(response.data["results"]),
             1
         )
 
@@ -218,7 +218,7 @@ class CommentAPITest(APITestCase):
         )
 
         self.assertEqual(
-            len(response.data),
+            len(response.data["results"]),
             0
         )
 
@@ -242,7 +242,7 @@ class CommentAPITest(APITestCase):
             status.HTTP_200_OK
         )
 
-        comment_ids = [item["id"] for item in response.data]
+        comment_ids = [item["id"] for item in response.data["results"]]
 
         self.assertIn(comment.id, comment_ids)
 

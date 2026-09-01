@@ -81,9 +81,12 @@ class CommentCachingTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
 
+
+
         cache_key = (
             f"teamflow:user:{self.system_admin.id}:"
-            f"task:{self.task.id}:comments:list"
+            f"task:{self.task.id}:comments:list:"
+            f"page:1:size:10"
         )
 
         cached_data = cache.get(cache_key)
@@ -106,7 +109,8 @@ class CommentCachingTests(APITestCase):
 
         cache_key = (
             f"teamflow:user:{self.system_admin.id}:"
-            f"task:{self.task.id}:comments:list"
+            f"task:{self.task.id}:comments:list:"
+            f"page:1:size:10"
         )
 
         self.assertIsNotNone(cache.get(cache_key))
@@ -139,7 +143,8 @@ class CommentCachingTests(APITestCase):
 
         cache_key = (
             f"teamflow:user:{self.system_admin.id}:"
-            f"task:{self.task.id}:comments:list"
+            f"task:{self.task.id}:comments:list:"
+            f"page:1:size:10"
         )
 
         self.assertIsNotNone(cache.get(cache_key))
@@ -171,7 +176,8 @@ class CommentCachingTests(APITestCase):
 
         cache_key = (
             f"teamflow:user:{self.system_admin.id}:"
-            f"task:{self.task.id}:comments:list"
+            f"task:{self.task.id}:comments:list:"
+            f"page:1:size:10"
         )
 
         self.assertIsNotNone(cache.get(cache_key))
