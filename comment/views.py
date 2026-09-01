@@ -18,10 +18,12 @@ from django.core.cache import cache
 
 from rest_framework.throttling import ScopedRateThrottle
 
-def invalidate_task_comments_cache(task_id):
-    cache.delete_pattern(
-        f"teamflow:user:*:task:{task_id}:comments:list"
-    )
+from .cache import invalidate_task_comments_cache
+
+# def invalidate_task_comments_cache(task_id):
+#     cache.delete_pattern(
+#         f"teamflow:user:*:task:{task_id}:comments:list:*"
+#     )
 
 class CommentView(ListCreateAPIView):
     serializer_class = CommentSerializer
@@ -143,31 +145,44 @@ class TaskCommentsList(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
 
         task_id = self.kwargs["pk"]
 
-        cache_key = (
-            f"teamflow:user:{request.user.id}:"
-            f"task:{task_id}:comments:list"
-        )
+        if page is not None:
 
-        cached_data = cache.get(cache_key)
+            page_number = request.query_params.get("page", "1")
 
-        if cached_data is not None:
-            return Response(cached_data)
+            page_size = request.query_params.get(
+                "page_size",
+                self.paginator.page_size
+            )
 
+            cache_key = (
+                f"teamflow:user:{request.user.id}:"
+                f"task:{task_id}:comments:list:"
+                f"page:{page_number}:size:{page_size}"
+            )
+
+            cached_data = cache.get(cache_key)
+
+            if cached_data is not None:
+                return Response(cached_data)
+
+
+            serializer = self.get_serializer(page,many=True)
+
+            response = self.get_paginated_response(serializer.data)
+
+            serializer_data = response.data
+
+            cache.set(cache_key,serializer_data,timeout=300)
+
+            return Response(serializer_data)
 
         serializer = self.get_serializer(
             queryset,
             many=True
         )
 
-        serialized_data = serializer.data
-
-        cache.set(
-            cache_key,
-            serialized_data,
-            timeout=300
-        )
-
-        return Response(serialized_data)
+        return Response(serializer.data)

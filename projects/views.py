@@ -29,7 +29,7 @@ from .cache import invalidate_project_members_cache
 from rest_framework.throttling import ScopedRateThrottle
 
 def invalidate_project_list_cache():
-    cache.delete_pattern("teamflow:user:*:projects:list")
+    cache.delete_pattern("teamflow:user:*:projects:list:*")
 
 def invalidate_project_detail_cache(project_id):
     cache.delete(f"teamflow:project:{project_id}")
@@ -54,26 +54,46 @@ class ProjectsView(ListCreateAPIView):
 
 
     def list(self, request, *args, **kwargs):
-        cache_key = f"teamflow:user:{request.user.id}:projects:list"
-
-        cached_data = cache.get(cache_key)
-
-        if cached_data is not None:
-            return Response(cached_data)
 
         queryset = self.get_queryset()
 
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+
+            page_number = request.query_params.get("page", "1")
+
+            page_size = request.query_params.get(
+                "page_size",
+                self.paginator.page_size
+            )
+
+
+            cache_key = (f"teamflow:user:{request.user.id}:projects:list:"
+                            f"page:{page_number}:size:{page_size}")
+                    
+
+            cached_data = cache.get(cache_key)
+
+            if cached_data is not None:
+                return Response(cached_data)
+
+            serializer = self.get_serializer(page,many=True)
+
+            response = self.get_paginated_response(
+                serializer.data
+            )
+
+            serialized_data = response.data
+
+            cache.set(cache_key,serialized_data,timeout=300)
+
+            return Response(serialized_data)
+
+
         serializer = self.get_serializer(queryset, many=True)
 
-        serialized_data = serializer.data
-
-        cache.set(
-            cache_key,
-            serialized_data,
-            timeout=300
-        )
-
-        return Response(serialized_data)
+        return Response(serializer.data)
 
     def perform_create(self,serializer):
         if self.request.user.role == "project_manager":
