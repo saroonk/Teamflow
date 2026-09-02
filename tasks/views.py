@@ -16,7 +16,8 @@ from django.core.cache import cache
 from rest_framework.throttling import ScopedRateThrottle
 
 from comment.cache import invalidate_task_comments_cache
-
+from django.db import transaction
+from .tasks import send_task_assignment_email
 
 def invalidate_task_list():
     cache.delete_pattern("teamflow:user:*:tasks:list:*")
@@ -107,9 +108,15 @@ class TasksView(ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
 
-        serializer.save(created_by=user)
+        task = serializer.save(created_by=user)
 
         invalidate_task_list()
+
+        if task.assigned_to_id:
+            transaction.on_commit(
+                lambda task_id=task.id:
+                    send_task_assignment_email.delay(task_id)
+            )
 
     
 
@@ -147,10 +154,21 @@ class TasksDetailView(RetrieveUpdateDestroyAPIView):
 
 
     def perform_update(self, serializer):
+
+        old_assignee_id = serializer.instance.assigned_to_id
+
         instance = serializer.save()
 
         invalidate_task_list()
         invalidate_task_detail(instance.id)
+
+        new_assignee_id = instance.assigned_to_id
+
+        if new_assignee_id and new_assignee_id != old_assignee_id:
+            transaction.on_commit(
+                lambda task_id=instance.id:
+                    send_task_assignment_email.delay(task_id)
+            )
 
     def perform_destroy(self,instance):
         task_id = instance.id
