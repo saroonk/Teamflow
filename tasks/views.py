@@ -19,6 +19,9 @@ from comment.cache import invalidate_task_comments_cache
 from django.db import transaction
 from .tasks import send_task_assignment_email
 
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TaskFilter
+
 def invalidate_task_list():
     cache.delete_pattern("teamflow:user:*:tasks:list:*")
 
@@ -31,6 +34,8 @@ class TasksView(ListCreateAPIView):
     queryset = Task.objects.all()
     permission_classes = [IsTaskAccess]
     throttle_classes = [ScopedRateThrottle]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TaskFilter
 
     def get_throttles(self):
         if self.request.method == "GET":
@@ -57,8 +62,7 @@ class TasksView(ListCreateAPIView):
 
 
     def list(self, request, *args, **kwargs):
-        queryset =self.get_queryset()
-
+        queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
 
         if page is not None:
@@ -70,8 +74,15 @@ class TasksView(ListCreateAPIView):
                 self.paginator.page_size
             )
 
+
+            status = request.query_params.get("status", "")
+            priority = request.query_params.get("priority", "")
+
             cache_key = (f"teamflow:user:{request.user.id}:"
-                        f"tasks:list:page:{page_number}:size:{page_size}")
+                        f"tasks:list:"
+                        f"status:{status}:"
+                        f"priority:{priority}:"
+                        f"page:{page_number}:size:{page_size}")
 
             cached_data = cache.get(cache_key)
 

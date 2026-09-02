@@ -59,7 +59,9 @@ class TaskCachingThrottlingTests(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         cache_key = (
-            f"teamflow:user:{self.system_admin.id}:tasks:list:page:1:size:10"
+            f"teamflow:user:{self.system_admin.id}:tasks:list:"
+            f"status::"
+            f"priority::page:1:size:10"
         )
 
         cached_data = cache.get(cache_key)
@@ -76,7 +78,9 @@ class TaskCachingThrottlingTests(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         cache_key = (
-            f"teamflow:user:{self.system_admin.id}:tasks:list:page:1:size:10"
+            f"teamflow:user:{self.system_admin.id}:tasks:list:"
+            f"status::"
+            f"priority::page:1:size:10"
         )
 
         self.assertIsNotNone(cache.get(cache_key))

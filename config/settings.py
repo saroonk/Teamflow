@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
+    "django_filters",
     'accounts',
     'organizations',
     'projects',
@@ -177,6 +178,7 @@ REST_FRAMEWORK = {
         "comments_detail":"30/minute",
         "task_comments_list":"60/minute"
     },
+
 
 }
 
