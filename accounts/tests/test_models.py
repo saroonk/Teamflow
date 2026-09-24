@@ -17,7 +17,7 @@ class UserModelTest(TestCase):
         )
 
     def test_user_creation(self):
-        self.assertEqual(self.user.username, "testuserss")
+        self.assertEqual(self.user.username, "testuser")
         self.assertEqual(self.user.email, "test@example.com")
         self.assertEqual(self.user.first_name, "Test")
         self.assertEqual(self.user.last_name, "User")
