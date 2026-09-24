@@ -47,21 +47,35 @@ jobs:
       - name: Run migrations
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
           DB_NAME: teamflow_db
           DB_USER: root
           DB_PASSWORD: root
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
+
+          EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+          REDIS_CACHE_URL: ${{ secrets.REDIS_CACHE_URL }}
+
         run: |
           python manage.py migrate
 
       - name: Run tests
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
           DB_NAME: teamflow_db
           DB_USER: root
           DB_PASSWORD: root
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
+
+          EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+          REDIS_CACHE_URL: ${{ secrets.REDIS_CACHE_URL }}
+
         run: |
           python manage.py test
