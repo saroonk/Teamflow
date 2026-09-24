@@ -1,3 +1,4 @@
+
 name: TeamFlow CI
 
 on:
@@ -45,6 +46,7 @@ jobs:
 
       - name: Run migrations
         env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DB_NAME: teamflow_db
           DB_USER: root
           DB_PASSWORD: root
@@ -55,6 +57,7 @@ jobs:
 
       - name: Run tests
         env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DB_NAME: teamflow_db
           DB_USER: root
           DB_PASSWORD: root
